@@ -2,6 +2,8 @@ scopeconfig:
   - scope: node
 fileignoreconfig:
   - filename: .env.sample
-    checksum: 4a49da1cb304722a21d4be6d5e00a9f47630b65dd65a8df723c97f11d9b234ee
+    checksum: e2edf0a3f1d7d8f2b145c01d19d4db125360f327c9ed8b8274214be160cd5096
   - filename: pages/api/simple-captcha-endpoint.ts
     checksum: eb2acabe543f946ac1785cea567d52ffe47d7a50217f98949435412fdb0acda6
+  - filename: src/aife.ts
+    checksum: 2777dec842587e477402d779ecbc8ee45e75094c361c341e8cb5fa57116372bc

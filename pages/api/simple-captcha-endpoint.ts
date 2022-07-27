@@ -1,43 +1,36 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
-const API_TOKEN_URL = process.env.API_TOKEN_URL || "https://sandbox-oauth.piste.gouv.fr/api/oauth/token";
-const API_URL = process.env.API_URL || 
+const API_CAPTCHA_URL =
+  process.env.API_CAPTCHA_URL ||
   "https://sandbox-api.piste.gouv.fr/piste/captcha/simple-captcha-endpoint";
-const API_CLIENT_ID = process.env.API_CLIENT_ID || "";
-const API_CLIENT_SECRET = process.env.API_CLIENT_SECRET || "";
 
-type OAuthCreds = { access_token: string; token_type: string };
-
-// fetch oauth token
-const fetchCreds = (): Promise<OAuthCreds> =>
-  fetch(API_TOKEN_URL, {
-    method: "POST",
-    body: new URLSearchParams({
-      grant_type: "client_credentials",
-      scope: "WRITE",
-      client_id: API_CLIENT_ID,
-      client_secret: API_CLIENT_SECRET,
-    }).toString(),
-    headers: {
-      "Content-Type": "application/x-www-form-urlencoded",
-    },
-  }).then(async (r) => {
-    if (r.status === 200) {
-      return r.json();
-    }
-    const text = await r.text();
-    console.log("fetchCreds error", text);
-  });
+import { OAuthCreds, fetchCreds } from "../../src/aife";
 
 // fetch CaptchEtat API
-const fetchCaptcha = (creds: OAuthCreds, params = {} as Record<string, string>): Promise<any> => {
-  const url = API_URL + "?" + new URLSearchParams(params).toString();
+const fetchCaptcha = (
+  creds: OAuthCreds,
+  params = {} as Record<string, string>
+): Promise<any> => {
+  const url = API_CAPTCHA_URL + "?" + new URLSearchParams(params).toString();
   return fetch(url, {
     method: "GET",
     headers: {
       Authorization: `${creds.token_type} ${creds.access_token}`,
     },
-  })
+  });
+};
+
+const sendBlob = async (
+  res: NextApiResponse,
+  blob: Blob,
+  contentType: string
+) => {
+  const buffer = Buffer.from(await blob.arrayBuffer());
+  res.writeHead(200, {
+    "Content-Type": contentType,
+    "Content-Length": buffer.length,
+  });
+  res.end(buffer, "binary");
 };
 
 export default async function handler(
@@ -45,17 +38,14 @@ export default async function handler(
   res: NextApiResponse
 ) {
   const creds = await fetchCreds();
-  const params = req.query as Record<string, string>
+  const params = req.query as Record<string, string>;
   const captcha = await fetchCaptcha(creds, params);
+  // todo: use direct response streaming so we keep original headers and dont need that switch
   if (params.get === "image") {
-    const buffer = Buffer.from(await (await captcha.blob()).arrayBuffer())
-    res.writeHead(200, {
-      "Content-Type": "image/png",
-      "Content-Length": buffer.length,
-    });
-    res.end(buffer, "binary");
+    sendBlob(res, await captcha.blob(), "image/png");
+  } else if (params.get === "sound") {
+    sendBlob(res, await captcha.blob(), "audio/x-wav");
   } else {
-    res.send(await captcha.text())
+    res.send(await captcha.text());
   }
-
 }
