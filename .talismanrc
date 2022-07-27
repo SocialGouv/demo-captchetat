@@ -1,0 +1,7 @@
+scopeconfig:
+  - scope: node
+fileignoreconfig:
+  - filename: .env.sample
+    checksum: 4a49da1cb304722a21d4be6d5e00a9f47630b65dd65a8df723c97f11d9b234ee
+  - filename: pages/api/simple-captcha-endpoint.ts
+    checksum: eb2acabe543f946ac1785cea567d52ffe47d7a50217f98949435412fdb0acda6
