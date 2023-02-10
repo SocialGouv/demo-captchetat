@@ -12,7 +12,7 @@ export const fetchCreds = (): Promise<OAuthCreds> =>
     method: "POST",
     body: new URLSearchParams({
       grant_type: "client_credentials",
-      scope: "WRITE",
+      scope: "piste.captchetat",
       client_id: API_CLIENT_ID,
       client_secret: API_CLIENT_SECRET,
     }).toString(),
